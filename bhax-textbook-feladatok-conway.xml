@@ -1,0 +1,463 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló, Conway!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+    <section>
+        <title>Hangyaszimulációk</title>
+        <para>
+            Írj Qt C++-ban egy hangyaszimulációs programot, a forrásaidról utólag reverse engineering jelleggel
+            készíts UML osztálydiagramot is!
+        </para>
+        <para>
+            Megoldás videó: <link xlink:href="https://bhaxor.blog.hu/2018/10/10/myrmecologist">https://bhaxor.blog.hu/2018/10/10/myrmecologist</link>
+        </para>
+        <para>
+            Megoldás forrása: <link xlink:href=""></link>               
+        </para>
+        <para>
+            Tanulságok, tapasztalatok, magyarázat...
+        </para>            
+    </section>        
+    <section>
+        <title>Java életjáték</title>
+        <para>
+            Írd meg Java-ban a John Horton Conway-féle életjátékot, 
+            valósítsa meg a sikló-kilövőt!
+        </para>
+        <para>
+            Megoldás videó: 
+        </para>
+        <para>
+            Megoldás forrása: <link xlink:href=""></link>               
+        </para>
+        <para>
+            Tanulságok, tapasztalatok, magyarázat...
+        </para>            
+    </section>        
+    <section>
+        <title>Qt C++ életjáték</title>
+        <para>
+            Most Qt C++-ban!
+        </para>
+        <para>
+            Megoldás videó: // sejtablak.cpp
+		<programlisting><![CDATA[
+#include <SFML/System.hpp>
+#include <SFML/Graphics.hpp>
+#include <vector>
+#include <iostream>
+using namespace sf;
+using std::vector;
+using std::cout;
+using std::endl;
+class Grid
+{
+public:
+    Grid(unsigned int x = 1000, unsigned int y = 1000, unsigned int diffs = 50) : w(x),h(y),diff(diffs)
+    {
+        
+    }
+    void draw(RenderWindow & window)
+    {
+        for(int i=0;i<w;i+=diff)
+        {   
+            Vertex line[] =
+            {
+                sf::Vertex(sf::Vector2f(i,0)),
+                sf::Vertex(sf::Vector2f(i, h))
+            };
+            line[0].color = Color(0,0,0);
+            line[1].color = Color(0,0,0);
+            window.draw(line, 2, sf::Lines);
+        }
+        for(int i=0;i<h;i+=diff)
+        {   
+            Vertex line[] =
+            {
+                sf::Vertex(sf::Vector2f(0,i)),
+                sf::Vertex(sf::Vector2f(w,i))
+            };
+            line[0].color = Color(0,0,0);
+            line[1].color = Color(0,0,0);
+            window.draw(line, 2, sf::Lines);
+        }
+    }
+    unsigned int w;
+    unsigned int h;
+    unsigned int diff;
+};
+class Square
+{
+public:
+    Square()
+    {
+    }
+    Square(int x_pos, int y_pos, float w, bool alive = false)
+    {
+        square = new RectangleShape(Vector2f(w,w));
+        square->setPosition(Vector2f(x_pos,y_pos));
+        aliveState = alive;
+    }
+    /*Square (const Square& other )
+    {
+        if(this != &other)
+        {
+            delete this->square;
+            this->square = other.square;
+        }
+    }
+    Square& operator=(const Square& other)
+    {
+        if(this != &other)
+        {
+            delete this->square;
+            this->square = other.square;
+        }
+        return *this;
+    }*/
+    ~Square()
+    {
+        delete square;
+    }
+    void update()
+    {
+        if(aliveState)
+        {
+            square->setFillColor(Color::Black);
+        }
+        else
+        {
+            square->setFillColor(Color::White);
+        }
+        
+    }
+    void setFill(Color c = Color::White)
+    {
+        square->setFillColor(c);
+    }
+    void draw(RenderWindow &window)
+    {
+        window.draw(*square);
+    }
+    RectangleShape* square;
+    bool aliveState;
+private:
+    
+};
+vector<vector<Square*>> update(vector<vector<Square*>> v)
+{
+    vector<vector<Square*>> tmp ;//= v;
+    for(int i=0;i<v.size();i++)
+    {
+        tmp.push_back(vector<Square*>());
+        for(int j=0;j<v[0].size();j++)
+        {
+            tmp[i].push_back(new Square(v[i][j]->square->getPosition().x,v[i][j]->square->getPosition().y,v[i][j]->square->getSize().x,v[i][j]->aliveState));
+        }
+    }
+    for(int i=0;i<v.size();i++)
+    {
+        for(int j=0;j<v[0].size();j++)
+        {
+            int live_neighbours = 0;
+            live_neighbours +=  v[(i-1)%v.size()][(j-1)%v[0].size()]->aliveState;
+            live_neighbours +=  v[(i-1)%v.size()][(j)%v[0].size()]->aliveState;
+            live_neighbours +=  v[(i-1)%v.size()][(j+1)%v[0].size()]->aliveState;
+            live_neighbours +=  v[(i)%v.size()][(j-1)%v[0].size()]->aliveState;
+            live_neighbours +=  v[(i)%v.size()][(j+1)%v[0].size()]->aliveState;
+            live_neighbours +=  v[(i+1)%v.size()][(j-1)%v[0].size()]->aliveState;
+            live_neighbours +=  v[(i+1)%v.size()][(j)%v[0].size()]->aliveState;
+            live_neighbours +=  v[(i+1)%v.size()][(j+1)%v[0].size()]->aliveState;
+            //cout <<" X:"<<i << " y:"<< j << " Live neighbours:"<< live_neighbours<<endl;
+            if(v[i][j]->aliveState)
+            {
+                if(live_neighbours < 2)
+                {
+                    tmp[i][j]->aliveState = false;
+                }
+                else if(live_neighbours > 3)
+                {
+                    tmp[i][j]->aliveState = false;
+                }
+            }
+            else
+            {
+                if(live_neighbours == 3)
+                {
+                    tmp[i][j]->aliveState = true;
+                }
+            }
+        }
+    }
+    return tmp;
+}
+void killall(vector<vector<Square*>> &v)
+{
+    for(int i=0;i<v.size();i++)
+    {
+        for(int j=0;j<v[0].size();j++)
+        {
+            v[i][j]->aliveState=false;
+        }
+    }
+}
+int main()
+{
+    RenderWindow window(VideoMode(1000,1000),"Game of Life");
+    window.setFramerateLimit(10);
+    window.setActive();
+    
+    Vector2u size = window.getSize();
+    Grid g(size.x,size.y,1000/40);
+    
+    
+    int h = g.h/g.diff+1;
+    int w = g.w/g.diff+1;
+    //Square squares[h][w];
+    std::vector<std::vector<Square*>> squares;
+    bool edit_mode = true;
+    for(int i=0;i<h;i++)
+    {
+        squares.push_back(vector<Square*>());
+        for(int j=0;j<w;j++)
+        {
+            squares[i].push_back(new Square(i*g.diff+1,j*g.diff+2,g.diff-3));
+        }
+    }
+    //squares[4][5]->aliveState=true;
+    while (window.isOpen())
+    {
+        window.clear(sf::Color::White);
+        // check all the window's events that were triggered since the last iteration of the loop
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            // "close requested" event: we close the window
+            if (event.type == sf::Event::Closed)
+            {
+                window.close();
+            }
+            else if(event.type == Event::MouseButtonPressed)
+            {
+                if(edit_mode && event.mouseButton.button == Mouse::Button::Left)
+                {
+                    /*cout<<event.mouseButton.x<<" "<<event.mouseButton.y<<endl;
+                    cout<<event.mouseButton.x/g.diff<< " "<< event.mouseButton.y/g.diff<<endl;*/
+                    squares[event.mouseButton.x/g.diff][event.mouseButton.y/g.diff]->aliveState= !squares[event.mouseButton.x/g.diff][event.mouseButton.y/g.diff]->aliveState;
+                    cout<< "Changed state on entity at X:"<< event.mouseButton.x/g.diff << " Y:"<<event.mouseButton.y/g.diff << " to "<< (squares[event.mouseButton.x/g.diff][event.mouseButton.y/g.diff]->aliveState? "Alive" : "Dead")<<endl;
+                }
+            }
+            else if(event.type == Event::KeyPressed)
+            {
+                if(event.key.code == Keyboard::Q)
+                {
+                    cout<<"Close request recieved. Application will exit."<<endl;
+                    window.close();
+                }
+                if(edit_mode && event.key.code == Keyboard::C)
+                {
+                    cout<< "Killed all entities." <<endl;
+                    killall(squares);
+                }
+                if(event.key.code == Keyboard::E)
+                {
+                    edit_mode = !edit_mode;
+                    if(edit_mode)
+                    {
+                        cout<< "Changed to edit mode."<<endl;
+                    }
+                    else
+                    {
+                        cout<< "Changed to simulation mode."<<endl;
+                    }
+                    
+                }
+            }
+            
+                
+        }
+        /*s.draw(window);
+        s.square->setPosition(Vector2f(s.square->getPosition().x+1,s.square->getPosition().y));*/
+        g.draw(window);
+        for(int i=0;i<h;i++)
+        {
+            for( int j=0; j<w;j++)
+            {
+                squares[i][j]->draw(window);
+            }
+        }
+        window.display();
+        if(!edit_mode) squares = update(squares);
+        for(int i=0;i<h;i++)
+        {
+            for( int j=0; j<w;j++)
+            {
+                squares[i][j]->update();
+            }
+        }
+    }
+     
+    return EXIT_SUCCESS;
+	]]></programlisting>
+	    </para>
+        <para>
+        A játék szabályokra épül:
+Első : A sejt túléli a kört, ha két vagy három szomszédja van.
+Második : A sejt elpusztul ,  ha kettőnél kevesebb , vagy háromnál több szomszédja van.
+Harmadik : Az új sejt megszületik  minden olyan cellűban , melynek környezetében pontosan három sejt található.
+A feladat megoldásához a programban kettő osztályt és három függvényt használunk. 
+Az első osztályunk a "Grid" elnevezést kapta. Ettől lesz az ablak rácsos megjelenésű.
+Amint ez az ablak elkészül, a <function>void draw</function> függvényünk segítségével jelenítjük meg az ablakot.
+A második osztályunk a "Square" ami azért van , hogy ha rákattintunk a négyzetre magán a rácshálón belül, akkor azt a rácsot kitöltse fekete színnel.
+Ezeket a négyzeteket a későbbiekben nekünk folyton frissítenünk kell melyhez a "Square"-en belül a <function>update</function>fog segíteni.
+A harmadik nagyobb részünk a "vector"  amely vektorral mozgatjuk a kijelölt négyzeteket a megfelelő játékszabályokat alkalmazva. 
+<programlisting language="c"><![CDATA[
+for(int i=0;i<v.size();i++)
+    {
+        for(int j=0;j<v[0].size();j++)
+        {
+            int live_neighbours = 0;
+            live_neighbours +=  v[(i-1)%v.size()][(j-1)%v[0].size()]->aliveState;
+            live_neighbours +=  v[(i-1)%v.size()][(j)%v[0].size()]->aliveState;
+            live_neighbours +=  v[(i-1)%v.size()][(j+1)%v[0].size()]->aliveState;
+            live_neighbours +=  v[(i)%v.size()][(j-1)%v[0].size()]->aliveState;
+            live_neighbours +=  v[(i)%v.size()][(j+1)%v[0].size()]->aliveState;
+            live_neighbours +=  v[(i+1)%v.size()][(j-1)%v[0].size()]->aliveState;
+            live_neighbours +=  v[(i+1)%v.size()][(j)%v[0].size()]->aliveState;
+            live_neighbours +=  v[(i+1)%v.size()][(j+1)%v[0].size()]->aliveState;
+            //cout <<" X:"<<i << " y:"<< j << " Live neighbours:"<< live_neighbours<<endl;
+            if(v[i][j]->aliveState)
+            {
+                if(live_neighbours < 2)
+                {
+                    tmp[i][j]->aliveState = false;
+                }
+                else if(live_neighbours > 3)
+                {
+                    tmp[i][j]->aliveState = false;
+                }
+            }
+            else
+            {
+                if(live_neighbours == 3)
+                {
+                    tmp[i][j]->aliveState = true;
+                }
+            }
+        }
+    }
+    return tmp;
+}
+]]>
+</programlisting>
+A negyedik része a programunknak, a killall, ami segít a játékosnak megölni az összes sejtet, ha az nem szeretne kilépni a programból, ha új játékot akar kezdeni.
+Az ötödik és utolsó részünk a main ahol az ablakunk paramétereit megadjuk. Jelenleg 1000x1000 és a "Game of Life" feliratot kapja.
+A while cikluson belül letöröljük az ablakot, teljesen tiszta, új felületet kapva.
+A programunk végén meghívjuk a "draw" illetve "update" függvényünket, amelyekkel kirajzoljuk a szerkesztő módban beállított új játékunkat és frissítjük a programot.
+
+        </para>            
+    </section>        
+    <section>
+        <title>BrainB Benchmark</title>
+        <para>
+        </para>
+        <para>
+            Megoldás videó: 
+        </para>
+        <para>
+            Megoldás forrása: 
+		<programlisting><![CDATA[ 
+/**
+ * @brief Benchmarking Cognitive Abilities of the Brain with Computer Games
+ *
+ * @file BrainBThread.cpp
+ * @author  Norbert Bátfai <nbatfai@gmail.com>
+ * @version 6.0.1
+ *
+ * @section LICENSE
+ *
+ * Copyright (C) 2017, 2018 Norbert Bátfai, nbatfai@gmail.com
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @section DESCRIPTION
+ *
+ */
+#include "BrainBThread.h"
+BrainBThread::BrainBThread ( int w, int h )
+{
+        dispShift = heroRectSize+heroRectSize/2;
+        this->w = w - 3 * heroRectSize;
+        this->h = h - 3 * heroRectSize;
+        std::srand ( std::time ( 0 ) );
+        Hero me ( this->w / 2 + 200.0 * std::rand() / ( RAND_MAX + 1.0 ) - 100,
+                  this->h / 2 + 200.0 * std::rand() / ( RAND_MAX + 1.0 ) - 100, 255.0 * std::rand() / ( RAND_MAX + 1.0 ), 9 );
+        Hero other1 ( this->w / 2 + 200.0 * std::rand() / ( RAND_MAX + 1.0 ) - 100,
+                      this->h / 2 + 200.0 * std::rand() / ( RAND_MAX + 1.0 ) - 100, 255.0 * std::rand() / ( RAND_MAX + 1.0 ), 5, "Norbi Entropy" );
+        Hero other2 ( this->w / 2 + 200.0 * std::rand() / ( RAND_MAX + 1.0 ) - 100,
+                      this->h / 2 + 200.0 * std::rand() / ( RAND_MAX + 1.0 ) - 100, 255.0 * std::rand() / ( RAND_MAX + 1.0 ), 3, "Greta Entropy" );
+        Hero other4 ( this->w / 2 + 200.0 * std::rand() / ( RAND_MAX + 1.0 ) - 100,
+                      this->h / 2 + 200.0 * std::rand() / ( RAND_MAX + 1.0 ) - 100, 255.0 * std::rand() / ( RAND_MAX + 1.0 ), 5, "Nandi Entropy" );
+        Hero other5 ( this->w / 2 + 200.0 * std::rand() / ( RAND_MAX + 1.0 ) - 100,
+                      this->h / 2 + 200.0 * std::rand() / ( RAND_MAX + 1.0 ) - 100, 255.0 * std::rand() / ( RAND_MAX + 1.0 ), 7, "Matyi Entropy" );
+        heroes.push_back ( me );
+        heroes.push_back ( other1 );
+        heroes.push_back ( other2 );
+        heroes.push_back ( other4 );
+        heroes.push_back ( other5 );
+}
+BrainBThread::~BrainBThread()
+{
+}
+void BrainBThread::run()
+{
+        while ( time < endTime ) {
+                QThread::msleep ( delay );
+                if ( !paused ) {
+                        ++time;
+                        devel();
+                }
+                draw();
+        }
+        emit endAndStats ( endTime );
+}
+void BrainBThread::pause()
+{
+        paused = !paused;
+        if ( paused ) {
+                ++nofPaused;
+        }
+}
+void BrainBThread::set_paused ( bool p )
+{
+        if ( !paused && p ) {
+                ++nofPaused;
+        }
+        paused = p;
+}             
+			      ]]></programlisting>
+        </para>
+        <para>
+            A program jelentős részét a header file képezi.
+            A headerben a hősök tulajdonságait találjuk, tartózkodási hely x és y koordinátákkal, valamint egy "agility" érték, amely a hősünk mozgásáért felelős (hány egységet léphet egyszerre).
+            //a header pontos megértése szükséges
+            A cpp fájlban 4 játékost láthatunk, valamint egy pause funkciót.
+		Tutor: Rémiás Dávid
+        </para>            
+    </section>        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+</chapter>

@@ -1,0 +1,979 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló, Welch!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+    <section>
+        <title>Első osztályom</title>
+        <para>
+            Valósítsd meg C++-ban és Java-ban az módosított polártranszformációs algoritmust! A matek háttér 
+            teljesen irreleváns, csak annyiban érdekes, hogy az algoritmus egy számítása során két normálist
+            számol ki, az egyiket elspájzolod és egy további logikai taggal az osztályban jelzed, hogy van vagy
+            nincs eltéve kiszámolt szám.
+        </para>
+        <para>
+            Megoldás videó:
+        </para>
+        <para>
+            Megoldás forrása:
+		<programlisting><![CDATA[ 
+ 		#include <iostream>
+#include <cstdlib>
+#include <cmath>
+#include <ctime>
+class PolarGen
+{
+public:
+  PolarGen ()
+  {
+    nincsTarolt = true;
+    std::srand (std::time (NULL));
+  }
+   ~PolarGen ()
+  {
+  }
+  double kovetkezo ()
+  {
+    if (nincsTarolt)
+      {
+        double u1, u2, v1, v2, w;
+        do
+    {
+      u1 = std::rand () / (RAND_MAX + 1.0);
+      u2 = std::rand () / (RAND_MAX + 1.0);
+      v1 = 2 * u1 - 1;
+      v2 = 2 * u2 - 1;
+      w = v1 * v1 + v2 * v2;
+    }
+        while (w > 1);
+        double r = std::sqrt ((-2 * std::log (w)) / w);
+        tarolt = r * v2;
+        nincsTarolt = !nincsTarolt;
+        return r * v1;
+      }
+    else
+      {
+        nincsTarolt = !nincsTarolt;
+        return tarolt;
+      }
+  }
+private:
+  bool nincsTarolt;
+  double tarolt;
+};
+int
+main (int argc, char **argv)
+{
+  PolarGen pg;
+  for (int i = 0; i < 10; ++i)
+    std::cout << pg.kovetkezo () << std::endl;
+  return 0;
+		]]></programlisting>
+          	
+        </para>
+        <para>
+            A Polargen nevű osztály létrehozásával kezdtük a feladatot.
+Egy random number generatornak random seedet adunk, ez 100-ig megy.
+A konstruktorban, pedig megadjuk, hogy még nincs eltárolt szám.
+A "kovetkezo" keresi, hogy van-e eltárolt számunk, ha nincs generál random két számot.
+Az egyiket eltárolja, majd a logikai változót hamisra állítja és visszatér a másik számmal.
+Igaz esetén azt jelenti , hogy az eltárolt változóban eltároltuk a vissza adandó számot.
+        </para>                
+    </section>        
+
+    <section>
+        <title>LZW</title>
+        <para>
+            Valósítsd meg C-ben az LZW algoritmus fa-építését!
+        </para>
+        <para>
+            Megoldás videó:
+        </para>
+        <para>
+            Megoldás forrása:
+		<programlisting><![CDATA[
+           	 #include <stdio.h>
+		#include <stdlib.h>
+		#include <time.h>
+		#include <string.h>
+		typedef struct node{
+		char c;
+		struct node* left;
+		struct node* right;
+		} Node;
+		Node* fa;
+		Node gyoker;
+		#define null NULL
+		Node* create_empty()
+		{
+		Node* tmp = &gyoker;
+		tmp->c= '/';
+		tmp->left = null;
+		tmp->right = null;
+		return tmp;
+		}
+		Node* create_node(char val)
+		{
+		Node* tmp = (Node*)malloc(sizeof(Node));
+		tmp->c=val;
+		tmp->left = null;
+		tmp->right = null;
+		return tmp;
+		}
+		void insert_tree(char val)
+		{
+		if(val=='0')
+		{
+		if(fa->left == null)
+		{
+			fa->left = create_node(val);
+			fa = &gyoker;
+			//printf("Inserted into left.");
+		}
+		else
+		{
+			fa = fa->left;
+		}
+		}
+		else
+		{
+		if(fa->right == null)
+		{
+			fa->right = create_node(val);
+			fa = &gyoker;
+			//printf("Inserted into left.");
+		}
+		else
+		{
+			fa = fa->right;
+		}
+		}
+		}
+		void inorder(Node* elem,int depth)
+		{
+		if(elem==null)
+		{
+		return;
+		}
+		inorder(elem->left,depth+1);
+		if(depth) 
+		{
+		char *spaces;
+		spaces =(char*) malloc(sizeof(char)*depth*2+1);
+		for(int i=0;i<depth;i+=2)
+		{
+			spaces[i]='-';
+			spaces[i+1]='-';
+		}
+		spaces[depth]='\0';
+		printf("%s%c\n",spaces,elem->c);
+		}
+		else
+		{
+		printf("%c\n",elem->c);
+		}
+		inorder(elem->right,depth+1);
+		}
+		void preorder(Node* elem,int depth)
+		{
+		if(elem==null)
+		{
+		return;
+		}
+		if(depth) 
+		{
+		char *spaces;
+		spaces =(char*) malloc(sizeof(char)*depth*2+1);
+		for(int i=0;i<depth;i+=2)
+		{
+			spaces[i]='-';
+			spaces[i+1]='-';
+		}
+		spaces[depth*2]='\0';
+		printf("%s%c\n",spaces,elem->c);
+		}
+		else
+		{
+		printf("%c\n",elem->c);
+		}
+		preorder(elem->left,depth+1);	
+		preorder(elem->right,depth+1);
+		}
+		void postorder(Node* elem,int depth)
+		{
+		if(elem==null)
+		{
+		return;
+			}
+		postorder(elem->left,depth+1);	
+		postorder(elem->right,depth+1);
+		if(depth) 
+		{
+		char *spaces;
+		spaces =(char*) malloc(sizeof(char)*depth*2+1);
+		for(int i=0;i<depth;i+=2)
+		{
+			spaces[i]='-';
+			spaces[i+1]='-';
+		}
+		spaces[depth*2]='\0';
+		printf("%s%c\n",spaces,elem->c);
+		free(spaces);
+		}
+		else
+		{
+		printf("%c\n",elem->c);
+			}
+		}
+		void destroy_tree(Node* elem)
+		{
+		if(elem==null)
+		{
+		return;
+		}
+		destroy_tree(elem->left);
+		destroy_tree(elem->right);
+		if(elem->c == gyoker.c)
+		{
+	
+		}
+		else
+		{
+			free(elem);
+		}
+		}
+		void usage()
+		{
+		printf("Használat: ./binfa KAPCSOLÓ\n");
+		printf("Az KAPCSOLÓ lehet:\n");
+		printf("--preorder\tA bináris fa preorder bejárása\n");
+		printf("--inorder\tA bináris fa inorder bejárása\n");
+		printf("--postorder\tA bináris fa postorder bejárása\n");
+		}
+		int main(int argc, char** argv)
+		{
+		srand(time(null));
+		fa = create_empty();
+		//gyoker = *fa;
+		for(int i=0;i<10000;i++)
+		{
+		int x=rand()%2;
+		if(x)
+		{
+			insert_tree('1');
+		}
+		else
+		{
+			insert_tree('0');
+		}
+		}
+		if(argc == 2)
+		{
+		if(strcmp(argv[1],"--preorder")==0)
+		{
+			preorder(&gyoker,0);
+		}
+		else if(strcmp(argv[1],"--inorder")==0)
+		{
+			inorder(&gyoker,0);
+		}
+		else if(strcmp(argv[1],"--postorder")==0)
+		{
+			postorder(&gyoker,0);
+		}
+		else
+		{
+			usage();
+		}
+		}
+		else
+		{
+		usage();
+		}
+		destroy_tree(&gyoker);
+		return 0;
+		}
+	        ]]></programlisting>   
+        </para>
+        <para>
+         Az Lempel-Ziv-Welch algoritmus egy veszteségmentes tömörítési eljárás, ilyen lehet a gif formátuma és ezeket tömörítők is használhatják.
+A kódoló jelen esetben a szótárbeli paramétert küldi át , ez a kódolás során dinamikusan bővül.
+A create_empty függvény a program használata előtt a működéshez szükséges kezdőértékeket be állítja a bináris fát illetően egy kitüntetett gyökérelemmel, ami a "/" karakterrel van megjelenítve a bejárások esetében.
+A <function>create_node</function> amely függvényünk generál egy csomópontot az argumentumként kapott karakterrel (<function>malloc(sizeof(Node))</function>) , a gyermekekre mutató mutatókat NULL-ra állítja be.
+Az <function>insert_tree</function> függvény valósítja meg az LZW bináris fa fel építését.
+Az <function>inorder</function> eljárás inorder módon azaz önmagát ismételve/rekurzívan bejárja a bináris fát. 
+Itt először a fa baloldalát, majd a gyökérelemet, legutoljára pedig a fa jobb oldalát járjuk be.
+A <function>destroy_tree</function> az az eljárás ami rekurzívan postorder módon bejárja a fát és minden ismétlés/rekurzió végén felszabadítja a részfánknak a gyökérelemét.
+A <function>main</function> függvényben feltöltöm a fát 10000 elemmel, majd az inorder módon bejárom a bináris fánkat, majd felszabadítom a fa pointereit.
+        </para>
+    </section>        
+        
+    <section>
+        <title>Fabejárás</title>
+        <para>
+            Járd be az előző (inorder bejárású) fát pre- és posztorder is!
+        </para>
+        <para>
+            Megoldás videó:
+        </para>
+        <para>
+            Megoldás forrása:
+		<programlisting><![CDATA[
+            "#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <string.h>
+typedef struct node{
+	char c;
+	struct node* left;
+	struct node* right;
+} Node;
+Node* fa;
+Node gyoker;
+#define null NULL
+Node* create_empty()
+{
+	Node* tmp = &gyoker;
+	tmp->c= '/';
+	tmp->left = null;
+	tmp->right = null;
+	return tmp;
+}
+Node* create_node(char val)
+{
+	Node* tmp = (Node*)malloc(sizeof(Node));
+	tmp->c=val;
+	tmp->left = null;
+	tmp->right = null;
+	return tmp;
+}
+void insert_tree(char val)
+{
+	if(val=='0')
+	{
+		if(fa->left == null)
+		{
+			fa->left = create_node(val);
+			fa = &gyoker;
+			//printf("Inserted into left.");
+		}
+		else
+		{
+			fa = fa->left;
+		}
+	}
+	else
+	{
+		if(fa->right == null)
+		{
+			fa->right = create_node(val);
+			fa = &gyoker;
+			//printf("Inserted into left.");
+		}
+		else
+		{
+			fa = fa->right;
+		}
+	}
+}
+void inorder(Node* elem,int depth)
+{
+	if(elem==null)
+	{
+		return;
+	}
+	inorder(elem->left,depth+1);
+	if(depth) 
+	{
+		char *spaces;
+		spaces =(char*) malloc(sizeof(char)*depth*2+1);
+		for(int i=0;i<depth;i+=2)
+		{
+			spaces[i]='-';
+			spaces[i+1]='-';
+		}
+		spaces[depth]='\0';
+		printf("%s%c\n",spaces,elem->c);
+	}
+	else
+	{
+		printf("%c\n",elem->c);
+	}
+	inorder(elem->right,depth+1);
+}
+void preorder(Node* elem,int depth)
+{
+	if(elem==null)
+	{
+		return;
+	}
+	if(depth) 
+	{
+		char *spaces;
+		spaces =(char*) malloc(sizeof(char)*depth*2+1);
+		for(int i=0;i<depth;i+=2)
+		{
+			spaces[i]='-';
+			spaces[i+1]='-';
+		}
+		spaces[depth*2]='\0';
+		printf("%s%c\n",spaces,elem->c);
+	}
+	else
+	{
+		printf("%c\n",elem->c);
+	}
+	preorder(elem->left,depth+1);	
+	preorder(elem->right,depth+1);
+}
+void postorder(Node* elem,int depth)
+{
+	if(elem==null)
+	{
+		return;
+	}
+	postorder(elem->left,depth+1);	
+	postorder(elem->right,depth+1);
+	if(depth) 
+	{
+		char *spaces;
+		spaces =(char*) malloc(sizeof(char)*depth*2+1);
+		for(int i=0;i<depth;i+=2)
+		{
+			spaces[i]='-';
+			spaces[i+1]='-';
+		}
+		spaces[depth*2]='\0';
+		printf("%s%c\n",spaces,elem->c);
+		free(spaces);
+	}
+	else
+	{
+		printf("%c\n",elem->c);
+	}
+}
+void destroy_tree(Node* elem)
+{
+	if(elem==null)
+	{
+		return;
+	}
+	destroy_tree(elem->left);
+	destroy_tree(elem->right);
+	if(elem->c == gyoker.c)
+	{
+	}
+	else
+	{
+		free(elem);
+	}
+}
+void usage()
+{
+	printf("Használat: ./binfa KAPCSOLÓ\n");
+	printf("Az KAPCSOLÓ lehet:\n");
+	printf("--preorder\tA bináris fa preorder bejárása\n");
+	printf("--inorder\tA bináris fa inorder bejárása\n");
+	printf("--postorder\tA bináris fa postorder bejárása\n");
+}
+int main(int argc, char** argv)
+{
+	srand(time(null));
+	fa = create_empty();
+	//gyoker = *fa;
+	for(int i=0;i<10000;i++)
+	{
+		int x=rand()%2;
+		if(x)
+		{
+			insert_tree('1');
+		}
+		else
+		{
+			insert_tree('0');
+		}
+	}
+	if(argc == 2)
+	{
+		if(strcmp(argv[1],"--preorder")==0)
+		{
+			preorder(&gyoker,0);
+		}
+		else if(strcmp(argv[1],"--inorder")==0)
+		{
+			inorder(&gyoker,0);
+		}
+		else if(strcmp(argv[1],"--postorder")==0)
+		{
+			postorder(&gyoker,0);
+		}
+		else
+		{
+			usage();
+		}
+	}
+	else
+	{
+		usage();
+	}
+	destroy_tree(&gyoker);
+	return 0;
+}
+"              ]]></programlisting> 
+        </para>
+        <para>
+      A <function>preorder</function> eljárás annyiban más mint az <function>inorder</function>, hogy ebben először feldolgozzuk a részfa gyökerét , majd bejárjuk a részfa bal oldalát, ha ez megvan akkor a jobb oldalát is .
+   A <function>postorder</function> eljárás pedig annyiban különbözik mint az alap eset "inorder" , hogy ebben először a részfának a bal oldalát járjuk be, után a a jobb oldalát, majd feldolgozzuk a részfának a gyökerét.
+        </para>
+    </section>        
+                        
+    <section>
+        <title>Tag a gyökér</title>
+        <para>
+            Az LZW algoritmust ültesd át egy C++ osztályba, legyen egy Tree és egy beágyazott Node
+            osztálya. A gyökér csomópont legyen kompozícióban a fával!
+	    Tutoriált: Rémiás Dávid
+        </para>
+        <para>
+            Megoldás videó:
+        </para>
+        <para>
+            Megoldás forrása:
+		<programlisting><![CDATA[
+            "#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <string.h>
+#define null NULL
+class Binfa
+{
+private:
+	class Node
+	{
+	public:
+		Node(char c='/')
+		{
+			this->c=c;
+			this->left = null;
+			this->right = null;
+		}
+		char c;
+		Node* left;
+		Node* right;
+	};
+	Node* fa;
+	
+public:
+	Binfa(): fa(&gyoker)
+	{
+	}
+	
+	void operator<<(char c)
+	{
+		if(c=='0')
+		{
+			if(fa->left == null)
+			{
+				fa->left = new Node('0');
+				fa = &gyoker;
+			}
+			else
+			{
+				fa = fa->left;
+			}
+		}
+		else
+		{
+			if(fa->right == null)
+			{
+				fa->right = new Node('1');
+				fa = &gyoker;
+			}
+			else
+			{
+				fa = fa->right;
+			}
+		}
+	}
+	
+	void preorder(Node* elem,int depth=0)
+	{
+		if(elem==null)
+		{
+			return;
+		}
+		if(depth) 
+		{
+			char *spaces;
+			spaces =(char*) malloc(sizeof(char)*depth*2+1);
+			for(int i=0;i<depth;i+=2)
+			{
+				spaces[i]='-';
+				spaces[i+1]='-';
+			}
+			spaces[depth*2]='\0';
+			printf("%s%c\n",spaces,elem->c);
+		}
+		else
+		{
+			printf("%c\n",elem->c);
+		}
+		preorder(elem->left,depth+1);	
+		preorder(elem->right,depth+1);
+	}
+	void inorder(Node* elem,int depth=0)
+	{
+		if(elem==null)
+		{
+			return;
+		}
+		inorder(elem->left,depth+1);
+		if(depth) 
+		{
+			char *spaces;
+			spaces =(char*) malloc(sizeof(char)*depth*2+1);
+			for(int i=0;i<depth;i+=2)
+			{
+				spaces[i]='-';
+				spaces[i+1]='-';
+			}
+			spaces[depth*2]='\0';
+			printf("%s%c\n",spaces,elem->c);
+		}
+		else
+		{
+			printf("%c\n",elem->c);
+		}	
+		inorder(elem->right,depth+1);
+	}
+	void postorder(Node* elem,int depth=0)
+	{
+		if(elem==null)
+		{
+			return;
+		}
+		postorder(elem->left,depth+1);
+		postorder(elem->right,depth+1);
+		if(depth) 
+		{
+			char *spaces;
+			spaces =(char*) malloc(sizeof(char)*depth*2+1);
+			for(int i=0;i<depth;i+=2)
+			{
+				spaces[i]='-';
+				spaces[i+1]='-';
+			}
+			spaces[depth*2]='\0';
+			printf("%s%c\n",spaces,elem->c);
+		}
+		else
+		{
+			printf("%c\n",elem->c);
+		}	
+	}
+	void destroy_tree(Node* elem)
+	{
+		if(elem==null)
+		{
+			return;
+		}
+		destroy_tree(elem->left);
+		destroy_tree(elem->right);
+		if(elem->c!='/') delete elem;
+	}
+	Node gyoker;
+};
+void usage()
+{
+	printf("Használat: ./binfa KAPCSOLÓ\n");
+	printf("Az KAPCSOLÓ lehet:\n");
+	printf("--preorder\tA bináris fa preorder bejárása\n");
+	printf("--inorder\tA bináris fa inorder bejárása\n");
+	printf("--postorder\tA bináris fa postorder bejárása\n");
+}
+int main(int argc, char** argv)
+{
+	srand(time(0));
+	Binfa bfa;
+	for(int i=0;i<100;i++)
+	{
+		int x=rand()%2;
+		if(x)
+		{
+			bfa<<'1';
+		}
+		else
+		{
+			bfa<<'0';
+		}
+	}
+	if(argc == 2)
+	{
+		if(strcmp(argv[1],"--preorder")==0)
+		{
+			bfa.preorder(&bfa.gyoker);
+		}
+		else if(strcmp(argv[1],"--inorder")==0)
+		{
+			bfa.inorder(&bfa.gyoker);
+		}
+		else if(strcmp(argv[1],"--postorder")==0)
+		{
+			bfa.postorder(&bfa.gyoker);
+		}
+		else
+		{
+			usage();
+		}
+	}
+	else
+	{
+		usage();
+	}
+	bfa.destroy_tree(&bfa.gyoker);
+	return 0;
+}
+">Binfa c++            
+		]]></programlisting>
+        </para>
+        <para>
+      A bináris fát kezelő függvényeket és eljárásokat , a Binfa osztályon belülre kell rendeznünk. 
+Létrehozzuk a "public" és a "privát" szekciót illetve a privát részévé tettem a Node struktúrát.
+A binfa objektum létrehozása után amit a "main"-ben tettem meg , ezen keresztül lehet elérni a binfa adatait. 
+A binfa osztályon belül túlterhelem a a "balra bitshift" operátort ami mostmár a bináris fa építését látja el.
+Ezt ugyanazon a munkameneten elven keresztül teszi meg mint az előző megoldásoknál tette az <function>insert_tree</function>eljárás.
+        </para>
+    </section>        
+                
+    <section>
+        <title>Mutató a gyökér</title>
+        <para>
+            Írd át az előző forrást, hogy a gyökér csomópont ne kompozícióban, csak aggregációban legyen a 
+            fával!
+        </para>
+        <para>
+            Megoldás videó: 
+        </para>
+        <para>
+            Megoldás forrása:
+		<programlisting><![CDATA[
+           "#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <string.h>
+#define null NULL
+class Binfa
+{
+private:
+	class Node
+	{
+	public:
+		Node(char c='/')
+		{
+			this->c=c;
+			this->left = null;
+			this->right = null;
+		}
+		char c;
+		Node* left;
+		Node* right;
+	};
+	Node* fa;
+	
+public:
+	Binfa()
+	{
+		gyoker=fa=new Node();
+	}
+	
+	void operator<<(char c)
+	{
+		if(c=='0')
+		{
+			if(fa->left == null)
+			{
+				fa->left = new Node('0');
+				fa = gyoker;
+			}
+			else
+			{
+				fa = fa->left;
+			}
+		}
+		else
+		{
+			if(fa->right == null)
+			{
+				fa->right = new Node('1');
+				fa = gyoker;
+			}
+			else
+			{
+				fa = fa->right;
+			}
+		}
+	}
+	
+	void preorder(Node* elem,int depth=0)
+	{
+		if(elem==null)
+		{
+			return;
+		}
+		if(depth) 
+		{
+			char *spaces;
+			spaces =(char*) malloc(sizeof(char)*depth*2+1);
+			for(int i=0;i<depth;i+=2)
+			{
+				spaces[i]='-';
+				spaces[i+1]='-';
+			}
+			spaces[depth*2]='\0';
+			printf("%s%c\n",spaces,elem->c);
+		}
+		else
+		{
+			printf("%c\n",elem->c);
+		}
+		preorder(elem->left,depth+1);	
+		preorder(elem->right,depth+1);
+	}
+	void inorder(Node* elem,int depth=0)
+	{
+		if(elem==null)
+		{
+			return;
+		}
+		inorder(elem->left,depth+1);
+		if(depth) 
+		{
+			char *spaces;
+			spaces =(char*) malloc(sizeof(char)*depth*2+1);
+			for(int i=0;i<depth;i+=2)
+			{
+				spaces[i]='-';
+				spaces[i+1]='-';
+			}
+			spaces[depth*2]='\0';
+			printf("%s%c\n",spaces,elem->c);
+		}
+		else
+		{
+			printf("%c\n",elem->c);
+		}	
+		inorder(elem->right,depth+1);
+	}
+	void postorder(Node* elem,int depth=0)
+	{
+		if(elem==null)
+		{
+			return;
+		}
+		postorder(elem->left,depth+1);
+		postorder(elem->right,depth+1);
+		if(depth) 
+		{
+			char *spaces;
+			spaces =(char*) malloc(sizeof(char)*depth*2+1);
+			for(int i=0;i<depth;i+=2)
+			{
+				spaces[i]='-';
+				spaces[i+1]='-';
+			}
+			spaces[depth*2]='\0';
+			printf("%s%c\n",spaces,elem->c);
+		}
+		else
+		{
+			printf("%c\n",elem->c);
+		}	
+	}
+	void destroy_tree(Node* elem)
+	{
+		if(elem==null)
+		{
+			return;
+		}
+		destroy_tree(elem->left);
+		destroy_tree(elem->right);
+		if(elem->c!='/') delete elem;
+	}
+	Node* gyoker;
+};
+void usage()
+{
+	printf("Használat: ./binfa KAPCSOLÓ\n");
+	printf("Az KAPCSOLÓ lehet:\n");
+	printf("--preorder\tA bináris fa preorder bejárása\n");
+	printf("--inorder\tA bináris fa inorder bejárása\n");
+	printf("--postorder\tA bináris fa postorder bejárása\n");
+}
+int main(int argc, char** argv)
+{
+	srand(time(0));
+	Binfa bfa;
+	for(int i=0;i<100;i++)
+	{
+		int x=rand()%2;
+		if(x)
+		{
+			bfa<<'1';
+		}
+		else
+		{
+			bfa<<'0';
+		}
+	}
+	if(argc == 2)
+	{
+		if(strcmp(argv[1],"--preorder")==0)
+		{
+			bfa.preorder(bfa.gyoker);
+		}
+		else if(strcmp(argv[1],"--inorder")==0)
+		{
+			bfa.inorder(bfa.gyoker);
+		}
+		else if(strcmp(argv[1],"--postorder")==0)
+		{
+			bfa.postorder(bfa.gyoker);
+		}
+		else
+		{
+			usage();
+		}
+	}
+	else
+	{
+		usage();
+	}
+	bfa.destroy_tree(bfa.gyoker);
+	return 0;
+}
+"  
+	]]></programlisting>
+        </para>
+         <para>
+            Módosítottunk az előző feladaton annyit, hogy a bejárás miatt létrehoztun kegy gyökérobjektumot.
+            Ezelőtt, ahol a program azt kérte hogy a gyökér referenciáját adjuk meg, most a gyökeret magát kell megadnunk. Tutoriált: Rémiás Dávid
+         </para>
+    </section>                     
+
+    <section>
+        <title>Mozgató szemantika</title>
+        <para>
+            Írj az előző programhoz mozgató konstruktort és értékadást, a mozgató konstruktor legyen a mozgató
+            értékadásra alapozva!
+        </para>
+        <para>
+            Megoldás videó: 
+        </para>
+        <para>
+            Megoldás forrása:  
+        </para>
+    </section>                     
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+</chapter>
